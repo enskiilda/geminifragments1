@@ -147,7 +147,7 @@ export function Chat({
                   {/* Wyświetl kroki agenta */}
                   {message.object && (
                     <AgentSteps 
-                      steps={message.object.steps as DeepPartial<AgentStep>[] | undefined}
+                      steps={Array.isArray(message.object.steps) ? message.object.steps : undefined}
                       currentStep={message.object.current_step}
                       isLoading={isLoading && index === messages.length - 1}
                     />
@@ -208,8 +208,8 @@ export function Chat({
                           {message.object.title}
                         </span>
                         <span className="font-sans text-sm text-muted-foreground">
-                          {message.object.files && (message.object.files as any[]).length > 0
-                            ? `${(message.object.files as any[]).length} files - Click to see application`
+                          {Array.isArray(message.object.files) && message.object.files.length > 0
+                            ? `${message.object.files.length} files - Click to see application`
                             : 'Click to see application'}
                         </span>
                       </div>

@@ -49,29 +49,32 @@ export function Preview({
 
   // Przygotuj listę plików do wyświetlenia
   const getFilesToDisplay = (): { name: string; content: string }[] => {
-    const files: { name: string; content: string }[] = []
-    
-    // Dodaj pliki z tablicy files jeśli istnieją
-    if (fragment.files && Array.isArray(fragment.files) && fragment.files.length > 0) {
-      for (const file of fragment.files) {
-        if (file && file.file_path && file.file_content) {
-          files.push({
+    // Pobierz pliki z tablicy files używając filtrowania i mapowania
+    const filesFromArray = Array.isArray(fragment.files)
+      ? fragment.files
+          .filter((file): file is { file_path: string; file_content: string } => 
+            Boolean(file?.file_path && file?.file_content)
+          )
+          .map(file => ({
             name: file.file_path,
             content: file.file_content,
-          })
-        }
-      }
+          }))
+      : []
+    
+    // Jeśli są pliki w tablicy, zwróć je
+    if (filesFromArray.length > 0) {
+      return filesFromArray
     }
     
-    // Jeśli brak plików w tablicy, użyj głównego pliku
-    if (files.length === 0 && fragment.code && fragment.file_path) {
-      files.push({
+    // W przeciwnym razie użyj głównego pliku (kompatybilność wsteczna)
+    if (fragment.code && fragment.file_path) {
+      return [{
         name: fragment.file_path,
         content: fragment.code,
-      })
+      }]
     }
     
-    return files
+    return []
   }
 
   const filesToDisplay = getFilesToDisplay()
