@@ -140,7 +140,7 @@ export default function Home() {
     if (object) {
       setFragment(object)
       const content: Message['content'] = [
-        { type: 'text', text: object.commentary || '' },
+        { type: 'text', text: object.current_step || '' },
         { type: 'code', text: object.code || '' },
       ]
 

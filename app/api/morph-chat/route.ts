@@ -87,7 +87,7 @@ ${currentFragment.code}
     const updatedFragment: FragmentSchema = {
       ...currentFragment,
       code: morphResult.code,
-      commentary: editInstructions.commentary,
+      current_step: editInstructions.commentary,
     }
 
     // Create a streaming response that matches the AI SDK format

@@ -1,13 +1,86 @@
 import { Message } from '@/lib/messages'
-import { FragmentSchema } from '@/lib/schema'
+import { FragmentSchema, AgentStep } from '@/lib/schema'
 import { ExecutionResult } from '@/lib/types'
 import { DeepPartial } from 'ai'
-import { LoaderIcon } from 'lucide-react'
+import { LoaderIcon, Brain, Search, FileText, Wrench, TestTube, CheckCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import AgentMode from './agent-mode'
 import LoaderSpinner from './loader-spinner'
 import { Typewriter } from './typewriter'
+
+// Ikony dla różnych typów kroków agenta
+function getStepIcon(type: string) {
+  switch (type) {
+    case 'thinking':
+      return <Brain className="h-4 w-4" />
+    case 'searching':
+      return <Search className="h-4 w-4" />
+    case 'reading':
+      return <FileText className="h-4 w-4" />
+    case 'analyzing':
+      return <Brain className="h-4 w-4" />
+    case 'editing':
+      return <Wrench className="h-4 w-4" />
+    case 'testing':
+      return <TestTube className="h-4 w-4" />
+    case 'decision':
+      return <CheckCircle className="h-4 w-4" />
+    default:
+      return <Brain className="h-4 w-4" />
+  }
+}
+
+// Komponent wyświetlający kroki agenta
+function AgentSteps({ 
+  steps, 
+  currentStep, 
+  isLoading 
+}: { 
+  steps?: DeepPartial<AgentStep>[]
+  currentStep?: string
+  isLoading: boolean 
+}) {
+  if (!steps || steps.length === 0) {
+    if (!currentStep) return null
+  }
+  
+  return (
+    <div className="mb-4 space-y-2">
+      {/* Aktualny krok */}
+      {currentStep && isLoading && (
+        <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 animate-pulse">
+          <LoaderIcon className="h-4 w-4 animate-spin" />
+          <Typewriter text={currentStep} speed={20} />
+        </div>
+      )}
+      
+      {/* Lista wszystkich kroków */}
+      {steps && steps.length > 0 && (
+        <div className="space-y-1 border-l-2 border-gray-200 dark:border-gray-700 pl-3 ml-1">
+          {steps.map((step, index) => (
+            <div 
+              key={index}
+              className={`flex items-start gap-2 text-sm ${
+                step.completed 
+                  ? 'text-gray-500 dark:text-gray-400' 
+                  : 'text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <span className="mt-0.5">
+                {step.type && getStepIcon(step.type)}
+              </span>
+              <span>{step.content}</span>
+              {step.completed && (
+                <CheckCircle className="h-3 w-3 text-green-500 mt-0.5" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function Chat({
   messages,
@@ -71,6 +144,15 @@ export function Chat({
             <div className="flex flex-col">
               <div className="flex">
                 <div className="mr-4 md:mr-24 text-black dark:text-white font-medium">
+                  {/* Wyświetl kroki agenta */}
+                  {message.object && (
+                    <AgentSteps 
+                      steps={message.object.steps as DeepPartial<AgentStep>[] | undefined}
+                      currentStep={message.object.current_step}
+                      isLoading={isLoading && index === messages.length - 1}
+                    />
+                  )}
+                  
                   <div>
                     {message.content.map((content, id) => {
                       if (content.type === 'text') {
@@ -126,7 +208,9 @@ export function Chat({
                           {message.object.title}
                         </span>
                         <span className="font-sans text-sm text-muted-foreground">
-                          Click to see fragment
+                          {message.object.files && (message.object.files as any[]).length > 0
+                            ? `${(message.object.files as any[]).length} files - Click to see application`
+                            : 'Click to see application'}
                         </span>
                       </div>
                     </div>
@@ -140,7 +224,7 @@ export function Chat({
       {isLoading && messages.length === 0 && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <LoaderIcon strokeWidth={2} className="animate-spin w-4 h-4" />
-          <span>Generating...</span>
+          <span>Agent is working...</span>
         </div>
       )}
     </div>
