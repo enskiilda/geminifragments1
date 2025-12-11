@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "id": "models/gemini-3-pro-preview",
+      "provider": "Google Generative AI",
+      "providerId": "google",
+      "name": "Gemini 3 Pro",
+      "multiModal": true
+    },
+    {
+      "id": "models/gemini-2.5-flash",
+      "provider": "Google Generative AI",
+      "providerId": "google",
+      "name": "Gemini 2.5 Flash",
+      "multiModal": true
+    }
+  ]
+}
