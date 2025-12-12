@@ -47,6 +47,39 @@ export function Preview({
     result?.template &&
     getTemplateId(result?.template!) !== 'code-interpreter-v1'
 
+  // Przygotuj listę plików do wyświetlenia
+  const getFilesToDisplay = (): { name: string; content: string }[] => {
+    // Pobierz pliki z tablicy files używając filtrowania i mapowania
+    const filesFromArray = Array.isArray(fragment.files)
+      ? fragment.files
+          .filter((file): file is { file_path: string; file_content: string } => 
+            Boolean(file?.file_path && file?.file_content)
+          )
+          .map(file => ({
+            name: file.file_path,
+            content: file.file_content,
+          }))
+      : []
+    
+    // Jeśli są pliki w tablicy, zwróć je
+    if (filesFromArray.length > 0) {
+      return filesFromArray
+    }
+    
+    // W przeciwnym razie użyj głównego pliku (kompatybilność wsteczna)
+    if (fragment.code && fragment.file_path) {
+      return [{
+        name: fragment.file_path,
+        content: fragment.code,
+      }]
+    }
+    
+    return []
+  }
+
+  const filesToDisplay = getFilesToDisplay()
+  const fileCount = filesToDisplay.length
+
   return (
     <div className={`absolute md:relative z-10 top-0 left-0 shadow-2xl md:rounded-tl-3xl md:rounded-bl-3xl md:border-l md:border-y bg-background h-full w-full overflow-auto ${!isMobilePreviewOpen ? 'hidden md:block' : ''}`}>
       <Tabs
@@ -84,7 +117,7 @@ export function Preview({
                     className="h-3 w-3 animate-spin"
                   />
                 )}
-                Code
+                Code {fileCount > 1 && `(${fileCount})`}
               </TabsTrigger>
               <TabsTrigger
                 disabled={!result}
@@ -114,15 +147,8 @@ export function Preview({
         {fragment && (
           <div className="overflow-y-auto w-full h-full">
             <TabsContent value="code" className="h-full">
-              {fragment.code && fragment.file_path && (
-                <FragmentCode
-                  files={[
-                    {
-                      name: fragment.file_path,
-                      content: fragment.code,
-                    },
-                  ]}
-                />
+              {filesToDisplay.length > 0 && (
+                <FragmentCode files={filesToDisplay} />
               )}
             </TabsContent>
             <TabsContent value="fragment" className="h-full">
